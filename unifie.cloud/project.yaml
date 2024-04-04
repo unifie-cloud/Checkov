@@ -1,0 +1,14 @@
+hardcodedNameSpace: null
+showVerionsTab: false
+showEnvVarsTab: false
+allowAutoApplyLimits: false
+name: Checkov
+title: Checkov
+logo: BellOutlined
+tags:
+  - Security
+  - Checkov
+description: Checkov https://www.checkov.io/4.Integrations/Kubernetes.html
+oneDeploymentPerCluster: false
+notAllowRemoveNamespace: true
+autoAddEnvVarsToDeployments: false
