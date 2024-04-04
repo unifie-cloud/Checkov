@@ -1,1 +1,10 @@
 name: Checkov
+rules:
+  - varName: CKV_SKIP_CHECK
+    varApplyMethod: method_replace
+    varValueType: string
+    varValueSrcType: src_deployment_ui
+    hardcodedDefaultValue: ''
+    refToSpecVar: ''
+    UIVarTitle: CKV_SKIP_CHECK
+    UIVarInputType: text

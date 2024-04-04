@@ -1,8 +1,4 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: checkov
----
+ 
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -157,13 +153,14 @@ roleRef:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: checkov
+  name: checkov2
   namespace: checkov
   annotations:
     checkov.io/skip1: CKV_K8S_22=Checkov requires filesystem write access to dump resource definitions
     checkov.io/skip2: CKV_K8S_38=Service Account is required for read-only API access
     checkov.io/skip3: CKV_K8S_14=Preferring latest rules every run - image pull always
     checkov.io/skip4: CKV_K8S_43=Preferring latest rules every run - image pull always
+    rerun: "2"
 spec:
   template:
     metadata:
@@ -181,14 +178,14 @@ spec:
       serviceAccountName: checkov
       containers:
         - name: checkov
+          env:
+            - name: CKV_SKIP_CHECK
+              value: "{{ .Values.CKV_SKIP_CHECK}}"
           image: bridgecrew/checkov-k8s:latest
           imagePullPolicy: Always
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "500m"
-            limits:
-              memory: "256Mi"
+              memory: "1Gi"
               cpu: "500m"
           securityContext:
             allowPrivilegeEscalation: false

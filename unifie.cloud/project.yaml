@@ -1,4 +1,4 @@
-hardcodedNameSpace: null
+hardcodedNameSpace: checkov
 showVerionsTab: false
 showEnvVarsTab: false
 allowAutoApplyLimits: false
@@ -9,6 +9,6 @@ tags:
   - Security
   - Checkov
 description: Checkov https://www.checkov.io/4.Integrations/Kubernetes.html
-oneDeploymentPerCluster: false
+oneDeploymentPerCluster: true
 notAllowRemoveNamespace: true
 autoAddEnvVarsToDeployments: false
