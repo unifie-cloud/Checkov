@@ -149,21 +149,70 @@ roleRef:
   kind: ClusterRole
   name: checkov-view
   apiGroup: rbac.authorization.k8s.io
+# ---
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: checkov2
+#   namespace: checkov
+#   annotations:
+#     checkov.io/skip1: CKV_K8S_22=Checkov requires filesystem write access to dump resource definitions
+#     checkov.io/skip2: CKV_K8S_38=Service Account is required for read-only API access
+#     checkov.io/skip3: CKV_K8S_14=Preferring latest rules every run - image pull always
+#     checkov.io/skip4: CKV_K8S_43=Preferring latest rules every run - image pull always 
+# spec:
+#   template:
+#     metadata:
+#       annotations:
+#         seccomp.security.alpha.kubernetes.io/pod: runtime/default
+#         checkov.io/skip1: CKV_K8S_22=Checkov requires filesystem write access to dump resource definitions
+#         checkov.io/skip2: CKV_K8S_38=Service Account is required for read-only API access
+#         checkov.io/skip3: CKV_K8S_14=Preferring latest rules every run - image pull always
+#         checkov.io/skip4: CKV_K8S_43=Preferring latest rules every run - image pull always
+#     spec:
+#       securityContext:
+#         runAsUser: 12000
+#         runAsNonRoot: true
+#       restartPolicy: Never
+#       serviceAccountName: checkov
+#       containers:
+#         - name: checkov
+#           env:
+#             - name: CKV_SKIP_CHECK
+#               value: "{{ .Values.CKV_SKIP_CHECK}}"
+#           image: bridgecrew/checkov-k8s:latest
+#           imagePullPolicy: Always
+#           resources:
+#             requests:
+#               memory: "1Gi"
+#               cpu: "500m"
+#           securityContext:
+#             allowPrivilegeEscalation: false
+#             capabilities:
+#               drop:
+#                 - ALL
+
 ---
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: checkov2
-  namespace: checkov
+  name: checkov 
   annotations:
     checkov.io/skip1: CKV_K8S_22=Checkov requires filesystem write access to dump resource definitions
     checkov.io/skip2: CKV_K8S_38=Service Account is required for read-only API access
     checkov.io/skip3: CKV_K8S_14=Preferring latest rules every run - image pull always
-    checkov.io/skip4: CKV_K8S_43=Preferring latest rules every run - image pull always
-    rerun: "2"
+    checkov.io/skip4: CKV_K8S_43=Preferring latest rules every run - image pull always 
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkov
   template:
     metadata:
+      labels:
+        app: checkov
+        ui-name: checkov
+        name: checkov 
       annotations:
         seccomp.security.alpha.kubernetes.io/pod: runtime/default
         checkov.io/skip1: CKV_K8S_22=Checkov requires filesystem write access to dump resource definitions
@@ -174,15 +223,13 @@ spec:
       securityContext:
         runAsUser: 12000
         runAsNonRoot: true
-      restartPolicy: Never
+      # restartPolicy: Never
       serviceAccountName: checkov
-      containers:
+      # imagePullSecrets:
+      #   - name: aws-ecr-key 
+      containers: 
         - name: checkov
-          env:
-            - name: CKV_SKIP_CHECK
-              value: "{{ .Values.CKV_SKIP_CHECK}}"
-          image: bridgecrew/checkov-k8s:latest
-          imagePullPolicy: Always
+          image: public.ecr.aws/g4a0y2u8/checkov:checkov-k8s-latest
           resources:
             requests:
               memory: "1Gi"
@@ -192,4 +239,33 @@ spec:
             capabilities:
               drop:
                 - ALL
+          env: 
+            - name: CKV_SKIP_CHECK
+              value: "{{ .Values.CKV_SKIP_CHECK}}"
+            - name: NODE_HTTP_SERVER_USERNAME
+              value: "{{ .Values.NODE_HTTP_SERVER_USERNAME}}" 
+            - name: NODE_HTTP_SERVER_PASSWORD
+              value: "{{ .Values.NODE_HTTP_SERVER_PASSWORD}}" 
+          imagePullPolicy: Always # IfNotPresent 
+          # command: ["/bin/bash", '-c', '--', "sleep 30000"] 
+          command: ["/bin/bash", '-c', '--', "cd /app && mkdir -p /app/web && /app/run_checkov.sh -o junitxml > /app/web/index.xml && cd /app/web && junit2html index.xml && mv index.xml.html index.html  && http-server --no-dotfiles"] 
+          ports:
+            - containerPort: 8080
+              name: ui
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    serviceType: checkov
+  name: checkov 
+spec:
+  type: NodePort
+  selector:
+    app: checkov
+  ports:
+    - name: checkov
+      port: 80
+      protocol: TCP
+      targetPort: 8080

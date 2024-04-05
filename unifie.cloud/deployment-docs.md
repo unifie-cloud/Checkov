@@ -7,4 +7,7 @@ Checkov scans cloud infrastructure configurations to find misconfigurations befo
 
 # How to use:
 
-Open pod logs in logs ui or get logs with web ssh console.
+- Username: admin
+- Password: password
+
+Please change default password in deployment settings (Services tab)

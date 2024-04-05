@@ -8,3 +8,30 @@ rules:
     refToSpecVar: ''
     UIVarTitle: CKV_SKIP_CHECK
     UIVarInputType: text
+  - varName: NODE_HTTP_SERVER_PASSWORD
+    varApplyMethod: method_replace
+    varValueType: string
+    varValueSrcType: src_deployment_ui
+    hardcodedDefaultValue: password
+    refToSpecVar: ''
+    UIVarTitle: Basic auth password
+    UIVarInputType: password
+  - varName: NODE_HTTP_SERVER_USERNAME
+    varApplyMethod: method_replace
+    varValueType: string
+    varValueSrcType: src_deployment_ui
+    hardcodedDefaultValue: admin
+    refToSpecVar: ''
+    UIVarTitle: Basic auth user
+    UIVarInputType: text
+routes:
+  - host: '{{ .deployment.domain }}'
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: checkov
+              port:
+                number: 80
